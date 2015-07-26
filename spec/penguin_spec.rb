@@ -1,11 +1,17 @@
 require 'spec_helper'
+require 'rack/test'
+require 'pry'
 
 describe Penguin do
-  it 'has a version number' do
-    expect(Penguin::VERSION).not_to be nil
+  include Rack::Test::Methods
+
+  def app
+    lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey there!\n"]] }
   end
 
-  it 'does something useful' do
-    expect(false).to eq(true)
+  it 'gets successful response' do
+    app
+    get '/'
+    expect last_response.ok?
   end
 end

@@ -10,7 +10,6 @@ describe Penguin do
   end
 
   it 'gets successful response' do
-    app
     get '/'
     expect last_response.ok?
   end

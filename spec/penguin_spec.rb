@@ -5,7 +5,7 @@ require 'penguin'
 describe Penguin do
   include Rack::Test::Methods
 
-  let(:limit) { 50 }
+  let(:limit) { 2 }
 
   let(:app) {
     Rack::Lint.new(
@@ -29,5 +29,10 @@ describe Penguin do
     expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(limit-1)
     get '/'
     expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(limit-2)
+  end
+
+  it 'prevents access when limit exceeded' do
+    (limit).times { get '/' }
+    expect(last_response.status).to eq(429)
   end
 end

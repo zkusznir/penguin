@@ -6,9 +6,11 @@ describe Penguin do
   include Rack::Test::Methods
 
   let(:app) {
-    Penguin::Middleware.new(
-      lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey!\n"]] },
-      {limit: 50})
+    Rack::Lint.new(
+      Penguin::Middleware.new(
+        lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey!\n"]] },
+        {limit: 50})
+    )
   }
 
   before(:each) { get '/' }
@@ -19,6 +21,6 @@ describe Penguin do
   end
 
   it 'sets limit rate from parameters' do
-    expect(last_response.header['X-RateLimit-Limit']).to eq(50)
+    expect(last_response.header['X-RateLimit-Limit']).to eq('50')
   end
 end

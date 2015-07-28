@@ -2,11 +2,10 @@ require "penguin/version"
 
 module Penguin
   class Middleware
-    attr_accessor :app
     
     def initialize(app, options = {})
       @app = app
-      @limit = options[:limit]
+      @limit = options[:limit].to_s
     end
 
     def call(env)

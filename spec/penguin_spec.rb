@@ -1,12 +1,13 @@
 require 'spec_helper'
 require 'rack/test'
 require 'penguin'
+require 'timecop'
 
 describe Penguin do
   include Rack::Test::Methods
 
   let(:rack_app) { lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey!\n"]] } }
-  let(:app) { Rack::Lint.new(Penguin::Middleware.new(rack_app, {limit: 20})) }
+  let(:app) { Rack::Lint.new(Penguin::Middleware.new(rack_app, { limit: 20, reset_at: 3600 })) }
 
   before(:each) { get '/' }
 
@@ -29,5 +30,14 @@ describe Penguin do
     expect(rack_app).not_to receive(:call)
     get '/'
     expect(last_response.status).to eq(429)
+  end
+
+  it 'resets limit after specified time' do
+    10.times { get '/' }
+    expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(9)
+    Timecop.freeze(Time.now + 4000) do
+      get '/'
+      expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)
+    end
   end
 end

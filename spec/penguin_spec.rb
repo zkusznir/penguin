@@ -5,13 +5,8 @@ require 'penguin'
 describe Penguin do
   include Rack::Test::Methods
 
-  let(:middleware) {
-    Penguin::Middleware.new(
-      lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey!\n"]] },
-      {limit: 20})
-  }
-  
-  let(:app) { Rack::Lint.new(middleware) }
+  let(:rack_app) { lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey!\n"]] } }
+  let(:app) { Rack::Lint.new(Penguin::Middleware.new(rack_app, {limit: 20})) }
 
   before(:each) { get '/' }
 
@@ -30,7 +25,9 @@ describe Penguin do
   end
 
   it 'prevents access when limit exceeded' do
-    20.times { get '/' }
+    19.times { get '/' }
+    expect(rack_app).not_to receive(:call)
+    get '/'
     expect(last_response.status).to eq(429)
   end
 end

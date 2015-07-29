@@ -12,10 +12,10 @@ module Penguin
       @limit_remaining ||= @limit
       return limit_exceeded if @limit_remaining == 0
       @limit_remaining -= 1
-      status, headers, body = @app.call(env)
-      headers['X-RateLimit-Limit'] = @limit.to_s
-      headers['X-RateLimit-Remaining'] = @limit_remaining.to_s
-      [status, headers, body]
+      @app.call(env).tap do |status, headers, body|
+        headers['X-RateLimit-Limit'] = @limit.to_s
+        headers['X-RateLimit-Remaining'] = @limit_remaining.to_s
+      end
     end
 
     def limit_exceeded

@@ -5,15 +5,13 @@ require 'penguin'
 describe Penguin do
   include Rack::Test::Methods
 
-  let(:limit) { 2 }
-
-  let(:app) {
-    Rack::Lint.new(
-      Penguin::Middleware.new(
-        lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey!\n"]] },
-        {limit: limit})
-    )
+  let(:middleware) {
+    Penguin::Middleware.new(
+      lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey!\n"]] },
+      {limit: 20})
   }
+  
+  let(:app) { Rack::Lint.new(middleware) }
 
   before(:each) { get '/' }
 
@@ -22,17 +20,17 @@ describe Penguin do
   end
 
   it 'sets limit rate from parameters' do
-    expect(last_response.header['X-RateLimit-Limit']).to eq(limit.to_s)
+    expect(last_response.header['X-RateLimit-Limit']).to eq('20')
   end
 
   it 'decreases limit rate' do
-    expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(limit-1)
+    expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)
     get '/'
-    expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(limit-2)
+    expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(18)
   end
 
   it 'prevents access when limit exceeded' do
-    (limit).times { get '/' }
+    20.times { get '/' }
     expect(last_response.status).to eq(429)
   end
 end

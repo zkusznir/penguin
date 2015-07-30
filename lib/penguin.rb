@@ -6,7 +6,7 @@ module Penguin
     def initialize(app, options = {})
       @app = app
       @limit = @limit_remaining = options[:limit]
-      @reset_at = Time.now + options[:reset_at]
+      @reset_at = Time.now + options[:reset_in]
     end
 
     def call(env)

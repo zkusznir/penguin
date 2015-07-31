@@ -41,12 +41,23 @@ describe Penguin do
     end
   end
 
-  it 'resets limit after specified time' do
-    10.times { get '/' }
-    expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(10)
-    Timecop.freeze(Time.now + 4000) do
-      get '/'
-      expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)
+  context 'when time limit elapsed' do
+    before(:each) { 10.times { get '/' } }
+
+    it 'resets limit' do
+      expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(10)
+      Timecop.freeze(Time.now + 4000) do
+        get '/'
+        expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)
+      end
+    end
+
+    it 'sets new time limit' do
+      expect(last_response.header['X-RateLimit-Reset'].to_i).to be_within(2).of((Time.now + 3600).to_i)
+      Timecop.freeze(Time.now + 4000) do
+        get '/'
+        expect(last_response.header['X-RateLimit-Reset'].to_i).to be_within(2).of((Time.now + 3600).to_i)
+      end
     end
   end
 end

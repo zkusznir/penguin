@@ -1,4 +1,5 @@
 require "penguin/version"
+require 'pry'
 
 module Penguin
   class Middleware
@@ -6,10 +7,12 @@ module Penguin
     def initialize(app, options = {})
       @app = app
       @limit = @limit_remaining = options[:limit]
-      @reset_at = Time.now + options[:reset_in]
+      @reset_in = options[:reset_in]
     end
 
     def call(env)
+      @reset_at ||= Time.now + @reset_in
+      @limit_remaning ||= @limit
       @limit_remaining = @limit if time_limit_elapsed
       return request_limit_exceeded if @limit_remaining == 0
       @limit_remaining -= 1

@@ -64,10 +64,36 @@ describe Penguin do
   context 'when different clients access app' do
     before(:each) { get '/', {}, 'REMOTE_ADDR' => '10.0.0.1' }
 
-    it 'distinguishes clients' do
+    it 'distinguishes clients by IP' do
       expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)
       get '/', {}, 'REMOTE_ADDR' => '10.0.0.2'
       expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)
+    end
+  end
+
+  context 'when block is passed to middleware' do
+    before(:each) { get '/', {}, 'REMOTE_ADDR' => '10.0.0.1' }
+
+    context 'when block returns nil' do
+      let(:app) { Rack::Lint.new(
+        Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 }) { nil }
+      )}
+
+      it 'does not set limit' do
+        expect(last_response.header['X-RateLimit-Limit']).to be_nil
+      end
+    end
+
+    context 'when block returns custom key' do
+      let(:app) { Rack::Lint.new(
+        Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 }) { rand(1000000) }
+      )}
+
+      it 'distinguishes client by custom key' do
+        expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)
+        get '/', {}, 'REMOTE_ADDR' => '10.0.0.1'
+        expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)
+      end
     end
   end
 end

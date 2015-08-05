@@ -7,7 +7,8 @@ describe Penguin do
   include Rack::Test::Methods
 
   let(:rack_app) { lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey!\n"]] } }
-  let(:app) { Rack::Lint.new(Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 })) }
+  let(:middleware) { Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 }) }
+  let(:app) { Rack::Lint.new(middleware) }
 
   context 'when limit is set' do
     before(:each) { get '/', {}, 'REMOTE_ADDR' => '10.0.0.1' }
@@ -75,9 +76,7 @@ describe Penguin do
     before(:each) { get '/', {}, 'REMOTE_ADDR' => '10.0.0.1' }
 
     context 'when block returns nil' do
-      let(:app) { Rack::Lint.new(
-        Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 }) { nil }
-      )}
+      let(:middleware) { Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 }) { nil } }
 
       it 'does not set limit' do
         expect(last_response.header['X-RateLimit-Limit']).to be_nil
@@ -85,9 +84,7 @@ describe Penguin do
     end
 
     context 'when block returns custom key' do
-      let(:app) { Rack::Lint.new(
-        Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 }) { rand(1000000) }
-      )}
+      let(:middleware) { Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 }) { rand(1000000) } }
 
       it 'distinguishes client by custom key' do
         expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)

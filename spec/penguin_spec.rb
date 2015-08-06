@@ -2,12 +2,14 @@ require 'spec_helper'
 require 'rack/test'
 require 'penguin'
 require 'timecop'
+require 'store'
 
 describe Penguin do
   include Rack::Test::Methods
 
   let(:rack_app) { lambda { |env| ['200', {'Content-Type' => 'text/html'}, ["Hey!\n"]] } }
-  let(:middleware) { Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 }) }
+  let(:store) { Penguin::Store.new }
+  let(:middleware) { Penguin::Middleware.new(rack_app, { limit: 20, reset_in: 3600 }, store) }
   let(:app) { Rack::Lint.new(middleware) }
 
   context 'when limit is set' do

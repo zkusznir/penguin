@@ -3,6 +3,7 @@ require 'rack/test'
 require 'penguin'
 require 'timecop'
 require 'store'
+require 'pry'
 
 describe Penguin do
   include Rack::Test::Methods
@@ -93,6 +94,16 @@ describe Penguin do
         get '/', {}, 'REMOTE_ADDR' => '10.0.0.1'
         expect(last_response.header['X-RateLimit-Remaining'].to_i).to eq(19)
       end
+    end
+  end
+
+  context 'when store is defined' do
+    before(:each) { get '/', {}, 'REMOTE_ADDR' => '10.0.0.1' }
+
+    it 'invokes get and set methods' do
+      expect(:store).to receive(:get)
+      store.clone.get(1)
+      # allow(:store).to receive(:set)
     end
   end
 end

@@ -1,5 +1,6 @@
 require "penguin/version"
 require 'store'
+require 'pry'
 
 module Penguin
   class Middleware
@@ -16,6 +17,7 @@ module Penguin
       reset_limit_if_time_limit_elapsed(client)
       return request_limit_exceeded if client[:limit_remaining] == 0
       client[:limit_remaining] -= 1
+      @store.set(client_id, client)
       @app.call(env).tap do |status, headers, body|
         headers['X-RateLimit-Limit'] = @limit.to_s
         headers['X-RateLimit-Remaining'] = client[:limit_remaining].to_s
@@ -28,7 +30,12 @@ module Penguin
     end
 
     def get_or_create_client(client_id)
-      (client = @store.get(client_id)) ? client : @store.set(client_id, default_values)
+      if client = @store.get(client_id)
+        client
+      else
+        @store.set(client_id, default_values)
+        default_values
+      end
     end
 
     def default_values

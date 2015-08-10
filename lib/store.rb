@@ -1,3 +1,5 @@
+require 'pry'
+
 module Penguin
   class Store
     def initialize
@@ -5,12 +7,11 @@ module Penguin
     end
 
     def get(key)
-      @clients[key].dup
+      @clients[key].dup if @clients[key]
     end
 
     def set(key, value)
       @clients[key] = value
-      @clients[key].dup
     end
   end
 end

@@ -1,6 +1,5 @@
 require "penguin/version"
 require 'store'
-require 'pry'
 
 module Penguin
   class Middleware

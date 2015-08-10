@@ -3,7 +3,6 @@ require 'rack/test'
 require 'penguin'
 require 'timecop'
 require 'store'
-require 'pry'
 
 describe Penguin do
   include Rack::Test::Methods
@@ -101,9 +100,8 @@ describe Penguin do
     before(:each) { get '/', {}, 'REMOTE_ADDR' => '10.0.0.1' }
 
     it 'invokes get and set methods' do
-      expect(:store).to receive(:get)
-      store.clone.get(1)
-      # allow(:store).to receive(:set)
+      allow(store).to receive(:get)
+      allow(store).to receive(:set)
     end
   end
 end

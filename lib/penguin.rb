@@ -10,8 +10,7 @@ module Penguin
     end
 
     def call(env)
-      client_id = @block.nil? ? env['REMOTE_ADDR'] : @block.call(env)
-      puts "\n\nCLIENT ID #{client_id}\n\n" # use X_FORWARDED_FOR maybe
+      client_id = @block.nil? ? env['HTTP_X_FORWARDED_FOR'] : @block.call(env)
       return @app.call(env) if client_id.nil?
       client = get_or_create_client(client_id)
       reset_limit_if_time_limit_elapsed(client)

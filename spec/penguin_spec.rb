@@ -97,11 +97,10 @@ describe Penguin do
   end
 
   context 'when store is defined' do
-    before(:each) { get '/', {}, 'HTTP_X_FORWARDED_FOR' => '10.0.0.1' }
-
     it 'invokes get and set methods' do
-      allow(store).to receive(:get)
-      allow(store).to receive(:set)
+      expect(store).to receive(:get)
+      2.times { expect(store).to receive(:set) }
+      get '/', {}, 'HTTP_X_FORWARDED_FOR' => '10.0.0.1'
     end
   end
 end
